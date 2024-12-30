@@ -1,68 +1,75 @@
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
-import {useEffect, useState } from "react";
-import { useParams } from 'react-router-dom'
 
 function RoomPage() {
     const { roomId } = useParams();
     const [room, setRoom] = useState(null);
     const [songs, setSongs] = useState([]);
-    const [newSong, setNewSong] = useState('');
+    const [newSong, setNewSong] = useState("");
 
     useEffect(() => {
-        const fetchRoom = async () => {
+        const fetchRoomData = async () => {
             try {
-                const roomResponse = await axios.get(`http://localhost:8080/api/rooms/${roomId}`);
+                const roomResponse = await axios.get(
+                    `http://localhost:8080/api/rooms/${roomId}`
+                );
                 setRoom(roomResponse.data);
 
-                const songsResponse = await axios.get(`http://localhos:8080/api/rooms/${roomId}/songs`);
+                const songsResponse = await axios.get(
+                    `http://localhost:8080/api/rooms/${roomId}/songs`
+                );
                 setSongs(songsResponse.data);
             } catch (error) {
-                console.error('Error fetching room data: ', error);
+                console.error("Error fetching room data:", error);
             }
         };
 
-        fetchRoom();
+        fetchRoomData();
     }, [roomId]);
 
     const suggestSong = async () => {
         try {
-            const response = await axios.post(`http://localhost:8080/api/rooms/${roomId}/songs`, {
-                title: newSong
-            });
+            const response = await axios.post(
+                `http://localhost:8080/api/rooms/${roomId}/songs`,
+                { title: newSong }
+            );
             setSongs([...songs, response.data]);
-            setNewSong('');
+            setNewSong("");
         } catch (error) {
-            console.error('Error suggesting songs:', error);
+            console.error("Error suggesting song:", error);
         }
     };
 
-
-return (
-    <div>
-        <h1>Room: {room?.name}</h1>
-        <div>
-            <h2>Song Suggestions</h2>
-            <ul>
-                {songs.map((song) => (
-                    <li key={song.id}>
-                        {song.title} - {song.artist}
-                    </li>
-                ))}
-            </ul>
+    return (
+        <div className="container mt-5">
+            <h1 className="text-center mb-4">Room: {room?.name}</h1>
+            <div className="card p-4 mb-4">
+                <h2>Songs</h2>
+                <ul className="list-group">
+                    {songs.map((song) => (
+                        <li key={song.id} className="list-group-item d-flex justify-content-between">
+                            {song.title}
+                            <button className="btn btn-sm btn-success">Vote</button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div className="card p-4">
+                <h2>Add a Song</h2>
+                <input
+                    type="text"
+                    placeholder="Song Title"
+                    value={newSong}
+                    onChange={(e) => setNewSong(e.target.value)}
+                    className="form-control mb-3"
+                />
+                <button onClick={suggestSong} className="btn btn-primary w-100">
+                    Suggest
+                </button>
+            </div>
         </div>
-        <div>
-            <input
-                type="text"
-                placeholder="Suggest a song"
-                value={newSong}
-                onChange={(e) => setNewSong(e.target.value)}
-            />
-            <button onClick={suggestSong}>Suggest Song</button>
-        </div>
-    </div>
-);
+    );
 }
-
-
 
 export default RoomPage;
